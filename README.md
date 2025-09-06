@@ -18,6 +18,40 @@ npm i
 npm run dev
 ```
 
+## Setup Instructions for Reviewers
+
+⚠️ **Important**: This application requires a Pexels API key and database setup.
+
+### 1. Get a Pexels API Key
+1. Sign up for a free account at [https://www.pexels.com/api/](https://www.pexels.com/api/)
+2. Generate your API key from the dashboard
+
+### 2. Environment Configuration
+Create a `.env.local` file in the root directory:
+```bash
+PEXELS_API_KEY=your_pexels_api_key_here
+```
+
+### 3. Database Setup
+Run the following commands to set up the database:
+```bash
+# Install dependencies
+npm install
+
+# Set up the database with all migrations
+npx prisma migrate dev
+
+# Start the development server
+npm run dev
+```
+
+### 4. First Run
+- The app will start with an empty database
+- Create a few tasks to see the dependency features in action
+- Images will be automatically fetched from Pexels as you create tasks
+
+**Note**: The database file (`prisma/dev.db`) is gitignored for security and to ensure each reviewer starts with a clean slate.
+
 ## Task:
 
 Modify the code to add support for due dates, image previews, and task dependencies.
