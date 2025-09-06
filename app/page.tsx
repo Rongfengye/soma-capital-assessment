@@ -14,6 +14,7 @@ export default function Home() {
   const [isAddingTodo, setIsAddingTodo] = useState(false);
   const [criticalPath, setCriticalPath] = useState<number[]>([]);
   const [isDependencyValid, setIsDependencyValid] = useState(true);
+  const [expandedTodos, setExpandedTodos] = useState<Set<number>>(new Set());
 
   const formatDueDate = (date: string) => {
     const dueDate = new Date(date);
@@ -56,6 +57,16 @@ export default function Home() {
     } catch {
       return new Date();
     }
+  };
+
+  const toggleExpansion = (todoId: number) => {
+    const newExpanded = new Set(expandedTodos);
+    if (newExpanded.has(todoId)) {
+      newExpanded.delete(todoId);
+    } else {
+      newExpanded.add(todoId);
+    }
+    setExpandedTodos(newExpanded);
   };
 
   const handleAddTodo = async () => {
@@ -169,78 +180,135 @@ export default function Home() {
           {todos.map((todo:Todo) => (
             <li
               key={todo.id}
-              className={`flex justify-between items-center bg-white bg-opacity-90 p-4 mb-4 rounded-lg shadow-lg ${
+              className={`bg-white bg-opacity-90 rounded-lg shadow-lg mb-4 overflow-hidden ${
                 isOverdue(todo.dueDate) ? 'border-l-4 border-l-red-500 bg-red-50' : ''
               }`}
             >
-              <div className="flex items-start gap-3">
-                <div className="w-[130px] h-[130px] flex-shrink-0">
-                  {todo.imageUrl ? (
-                    <img 
-                      src={todo.imageUrl} 
-                      alt={todo.title}
-                      className="w-full h-full object-cover rounded"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-200 rounded flex items-center justify-center text-gray-500 text-sm">
-                      no image found
-                    </div>
-                  )}
-                </div>
-                <div className="flex flex-col flex-grow">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-gray-800 font-medium">{todo.title}</span>
-                    {criticalPath.includes(todo.id) && (
-                      <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-2 py-1 rounded-full">
-                        Critical Path
-                      </span>
-                    )}
-                    {todo.dependencies && todo.dependencies.length > 0 && (
-                      <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">
-                        {todo.dependencies.length} dep{todo.dependencies.length !== 1 ? 's' : ''}
-                      </span>
+              {/* Main Card Content */}
+              <div className="p-4">
+                <div className="flex items-start gap-3">
+                  {/* Image */}
+                  <div className="w-[100px] h-[100px] flex-shrink-0">
+                    {todo.imageUrl ? (
+                      <img 
+                        src={todo.imageUrl} 
+                        alt={todo.title}
+                        className="w-full h-full object-cover rounded"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200 rounded flex items-center justify-center text-gray-500 text-xs">
+                        no image found
+                      </div>
                     )}
                   </div>
                   
-                  <div className="space-y-1 text-sm">
-                    <div className={`${isOverdue(todo.dueDate) ? 'text-red-600 font-semibold' : 'text-gray-600'}`}>
-                      Due: {formatDueDate(todo.dueDate)} • {todo.duration} day{todo.duration !== 1 ? 's' : ''}
-                      {isOverdue(todo.dueDate) && <span className="ml-2 text-red-500">⚠️ OVERDUE</span>}
+                  {/* Content */}
+                  <div className="flex-grow">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-grow">
+                        {/* Title and badges */}
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="text-gray-800 font-medium text-lg">{todo.title}</h3>
+                          {criticalPath.includes(todo.id) && (
+                            <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-2 py-1 rounded-full">
+                              Critical
+                            </span>
+                          )}
+                        </div>
+                        
+                        {/* Due date */}
+                        <div className={`text-sm mb-2 ${isOverdue(todo.dueDate) ? 'text-red-600 font-semibold' : 'text-gray-600'}`}>
+                          📅 Due: {formatDueDate(todo.dueDate)} • ⏱️ {todo.duration} day{todo.duration !== 1 ? 's' : ''}
+                          {isOverdue(todo.dueDate) && <span className="ml-2 text-red-500">⚠️ OVERDUE</span>}
+                        </div>
+                        
+                        {/* Dependencies summary */}
+                        {todo.dependencies && todo.dependencies.length > 0 && (
+                          <button
+                            onClick={() => toggleExpansion(todo.id)}
+                            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                          >
+                            <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">
+                              {todo.dependencies.length} dependenc{todo.dependencies.length !== 1 ? 'ies' : 'y'}
+                            </span>
+                            <span>
+                              {expandedTodos.has(todo.id) ? '▼ Hide details' : '▶ Show details'}
+                            </span>
+                          </button>
+                        )}
+                        
+                        {todo.dependencies && todo.dependencies.length === 0 && (
+                          <span className="text-sm text-green-600">✅ Ready to start</span>
+                        )}
+                      </div>
+                      
+                      {/* Delete button */}
+                      <button
+                        onClick={() => handleDeleteTodo(todo.id)}
+                        className="text-red-500 hover:text-red-700 transition duration-300 p-1"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
                     </div>
-                    
-                    {todo.dependencies && todo.dependencies.length > 0 && (
-                      <div className="text-blue-600">
-                        Earliest start: {formatDueDate(getEarliestStartDate(todo).toISOString())}
-                      </div>
-                    )}
-                    
-                    {todo.dependencies && todo.dependencies.length > 0 && (
-                      <div className="text-gray-500 text-xs">
-                        Depends on: {todo.dependencies.map((dep: any) => dep.dependency.title).join(', ')}
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
-              <button
-                onClick={() => handleDeleteTodo(todo.id)}
-                className="text-red-500 hover:text-red-700 transition duration-300 ml-4"
-              >
-                {/* Delete Icon */}
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
+              
+              {/* Expandable Dependencies Section */}
+              {expandedTodos.has(todo.id) && todo.dependencies && todo.dependencies.length > 0 && (
+                <div className="border-t border-gray-200 bg-gray-50 bg-opacity-50 p-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                    📋 Dependency Details
+                    {todo.dependencies.length > 0 && (
+                      <span className="text-blue-600">
+                        Earliest start: {formatDueDate(getEarliestStartDate(todo).toISOString())}
+                      </span>
+                    )}
+                  </h4>
+                  
+                  <div className="space-y-2">
+                    {todo.dependencies.map((dep: any, index: number) => (
+                      <div key={dep.id} className="flex items-center gap-3 p-2 bg-white rounded-lg border border-gray-200">
+                        <span className="text-xs text-gray-500 font-mono">{index + 1}</span>
+                        <div className="flex-grow">
+                          <div className="font-medium text-gray-800">{dep.dependency.title}</div>
+                          <div className="text-xs text-gray-500">
+                            Due: {formatDueDate(dep.dependency.dueDate)} • {dep.dependency.duration} day{dep.dependency.duration !== 1 ? 's' : ''}
+                          </div>
+                        </div>
+                        <div className="text-xs">
+                          {isOverdue(dep.dependency.dueDate) ? (
+                            <span className="text-red-500 font-semibold">⚠️ Overdue</span>
+                          ) : (
+                            <span className="text-green-600">✅ On track</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Flow visualization for this task */}
+                  <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                    <div className="text-xs font-medium text-blue-800 mb-2">Task Flow:</div>
+                    <div className="flex items-center gap-2 text-xs overflow-x-auto">
+                      {todo.dependencies.map((dep: any, index: number) => (
+                        <div key={dep.id} className="flex items-center gap-1 flex-shrink-0">
+                          <span className="bg-blue-200 text-blue-800 px-2 py-1 rounded whitespace-nowrap">
+                            {dep.dependency.title}
+                          </span>
+                          {index < todo.dependencies.length - 1 && <span className="text-blue-400">→</span>}
+                        </div>
+                      ))}
+                      <span className="text-blue-400">→</span>
+                      <span className="bg-orange-200 text-orange-800 px-2 py-1 rounded font-medium">
+                        {todo.title}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </li>
           ))}
         </ul>
