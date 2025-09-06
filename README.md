@@ -90,6 +90,9 @@ Thanks for your time and effort. We'll be in touch soon!
 
 ## Solution
 
+### 🎥 Demo Video
+![Demo Video](./somademo.mov)
+
 I've transformed the basic todo app into a comprehensive project management tool with advanced dependency tracking and visual enhancements. Here's what I built for each part:
 
 ### Part 1: Due Dates ✅
