@@ -53,3 +53,115 @@ Implement a task dependency system that allows tasks to depend on other tasks. T
 3. Submit a link to your repository in the application form.
 
 Thanks for your time and effort. We'll be in touch soon!
+
+## Solution
+
+I've transformed the basic todo app into a comprehensive project management tool with advanced dependency tracking and visual enhancements. Here's what I built for each part:
+
+### Part 1: Due Dates ✅
+
+I made due dates a core requirement for every task since effective project management demands clear deadlines. When creating a task, users must select a due date using the integrated date picker I added to the form.
+
+For overdue visualization, I went beyond just red text - I implemented a multi-layered approach:
+- Overdue dates show in **bright red with bold text**
+- Added a prominent "⚠️ OVERDUE" warning label
+- Gave overdue tasks a **red left border** and light red background so they're impossible to miss
+- Stored dates in UTC but display them in the user's local timezone for accuracy
+
+I also made the pragmatic choice to allow creating tasks with past dates - they'll just be immediately flagged as overdue, which is useful for tracking delayed work.
+
+### Part 2: Image Generation 🖼️
+
+I integrated the Pexels API to automatically fetch relevant images for each task, making the interface much more visual and engaging. 
+
+For the implementation, I chose a **server-side approach** to keep the API key secure. When a user creates a task, my backend:
+1. Takes the task title as a search query
+2. Calls the Pexels API to find relevant images
+3. Stores the image URL in the database
+4. Returns the complete task with image to the frontend
+
+I added proper loading states ("Adding..." button) and graceful fallbacks - if no image is found, it shows a clean "no image found" placeholder instead of breaking the UI.
+
+The images are sized at 100x100px to keep the interface clean while still being visually helpful for quickly identifying tasks.
+
+### Part 3: Task Dependencies 🔗
+
+This was the most complex part - I built a full dependency management system with critical path analysis. Here's how I tackled it:
+
+#### Smart Dependency Selection
+I created a **SearchAndAdd interface** where users type to search existing tasks. As they type "setup", they'll see suggestions like "Setup Database (Due: Dec 10 • 1 day)" with full context. I made sure to exclude the current task and already-selected dependencies from the results.
+
+#### Bulletproof Validation
+I implemented **real-time validation** that prevents two critical issues:
+1. **Circular dependencies**: Using depth-first search, I detect if adding a dependency would create a loop (A depends on B, B depends on A)
+2. **Illogical date ordering**: Dependencies must be due *before* the current task - no task due Dec 10 can depend on a task due Dec 15
+
+When validation fails, the "Add Todo" button becomes disabled and shows "Fix Dependencies to Continue" with clear error messages.
+
+#### Critical Path Analysis
+I implemented the **Critical Path Method (CPM)** with forward and backward pass algorithms to identify which tasks cannot be delayed without affecting the project completion date. Critical path tasks get orange "Critical" badges and special highlighting.
+
+#### Expandable Card Design
+The original tree view got cluttered with multiple dependencies, so I redesigned it with **expandable cards**:
+
+**Compact view** shows:
+- "3 dependencies ▶ Show details" (clickable)
+- "✅ Ready to start" (no dependencies)
+
+**Expanded view** reveals:
+- Numbered list of all dependencies with status
+- Flow visualization: "Setup DB → API Design → Deploy App"  
+- Calculated earliest start date
+- Status indicators (✅ On track or ⚠️ Overdue for each dependency)
+
+This scales beautifully from 1 dependency to 20+ dependencies while keeping the interface clean.
+
+#### Database Design
+I used a junction table approach with `TodoDependency` records linking tasks, plus added a `duration` field (in days) to each task for realistic timeline calculations.
+
+### Technical Implementation
+
+On the **backend**, I built RESTful API endpoints using Next.js API routes with comprehensive error handling. I chose Prisma ORM for type-safe database operations with SQLite - this gave me excellent TypeScript integration and made the complex dependency relationships much easier to manage.
+
+For **algorithms**, I implemented several computer science fundamentals:
+- **Depth-First Search** for circular dependency detection
+- **Critical Path Method** with forward/backward pass for project scheduling
+- **Topological sorting** for dependency ordering in visualizations
+
+On the **frontend**, I used React with TypeScript throughout for type safety. The UI uses Tailwind CSS with a custom orange-to-red gradient theme that matches Soma's branding. I focused heavily on **real-time validation** - users get immediate feedback as they interact with forms, rather than waiting until submission.
+
+The **expandable card pattern** I designed uses progressive disclosure - show just what users need to see, but make detailed information available on demand.
+
+**Database Schema:**
+```prisma
+model Todo {
+  id          Int      @id @default(autoincrement())
+  title       String
+  dueDate     DateTime
+  duration    Int      @default(1)  // Added for timeline calculations
+  imageUrl    String?               // Added for Pexels integration
+  dependencies TodoDependency[] @relation("DependentTodo")
+  dependents   TodoDependency[] @relation("DependencyTodo")
+}
+
+model TodoDependency {
+  id           Int  @id @default(autoincrement())
+  dependentId  Int  // Task that depends on another
+  dependencyId Int  // Task that must be completed first
+  @@unique([dependentId, dependencyId]) // Prevent duplicate relationships
+}
+```
+
+### What I'm Most Proud Of
+
+1. **The validation system** - It's impossible to create invalid project configurations. The app guides users toward logical project structures.
+
+2. **Expandable cards** - They solved the core UX problem of displaying complex dependency information without overwhelming the interface.
+
+3. **Critical path calculation** - This transforms the app from a simple todo list into a legitimate project management tool that can handle real workflows.
+
+4. **Performance considerations** - Server-side image fetching, efficient database queries, and progressive disclosure keep the app fast even with complex dependency networks.
+
+The result feels like a professional project management application rather than just a todo list with extra features.
+
+Thanks for your time and effort. We'll be in touch soon!
