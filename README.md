@@ -90,8 +90,10 @@ Thanks for your time and effort. We'll be in touch soon!
 
 ## Solution
 
-### 🎥 Demo Video
-![Demo Video](./somademo.mov)
+### 🎥 Demo
+![Demo Flow 1](./somaflow1-ezgif.com-video-to-gif-converter.gif)
+
+![Demo Flow 2](./somaflow2-ezgif.com-video-to-gif-converter.gif)
 
 I've transformed the basic todo app into a comprehensive project management tool with advanced dependency tracking and visual enhancements. Here's what I built for each part:
 
