@@ -8,6 +8,18 @@ export async function GET() {
       orderBy: {
         createdAt: 'desc',
       },
+      include: {
+        dependencies: {
+          include: {
+            dependency: true,
+          },
+        },
+        dependents: {
+          include: {
+            dependent: true,
+          },
+        },
+      },
     });
     return NextResponse.json(todos);
   } catch (error) {
@@ -17,7 +29,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { title, dueDate } = await request.json();
+    const { title, dueDate, duration = 1, dependencyIds = [] } = await request.json();
     if (!title || title.trim() === '') {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
     }
@@ -31,7 +43,25 @@ export async function POST(request: Request) {
       data: {
         title,
         dueDate: new Date(dueDate),
+        duration,
         imageUrl,
+        dependencies: {
+          create: dependencyIds.map((depId: number) => ({
+            dependencyId: depId,
+          })),
+        },
+      },
+      include: {
+        dependencies: {
+          include: {
+            dependency: true,
+          },
+        },
+        dependents: {
+          include: {
+            dependent: true,
+          },
+        },
       },
     });
     return NextResponse.json(todo, { status: 201 });

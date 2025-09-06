@@ -12,5 +12,21 @@ model Todo {
   title     String
   dueDate   DateTime
   imageUrl  String?
-  createdAt DateTime  @default(now())
+  duration  Int      @default(1) // duration in days
+  createdAt DateTime @default(now())
+  
+  // Relationships
+  dependencies  TodoDependency[] @relation("DependentTodo")
+  dependents    TodoDependency[] @relation("DependencyTodo")
+}
+
+model TodoDependency {
+  id           Int  @id @default(autoincrement())
+  dependentId  Int  // The task that depends on another
+  dependencyId Int  // The task that must be completed first
+  
+  dependent    Todo @relation("DependentTodo", fields: [dependentId], references: [id], onDelete: Cascade)
+  dependency   Todo @relation("DependencyTodo", fields: [dependencyId], references: [id], onDelete: Cascade)
+  
+  @@unique([dependentId, dependencyId])
 }
